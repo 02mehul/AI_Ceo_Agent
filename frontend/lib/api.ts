@@ -24,7 +24,13 @@ async function request<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || "Request failed");
+    const detail = err.detail;
+    const msg = Array.isArray(detail)
+      ? detail.map((e: { loc?: string[]; msg?: string }) => `${e.loc?.join(".")} — ${e.msg}`).join("; ")
+      : typeof detail === "string"
+      ? detail
+      : "Request failed";
+    throw new Error(msg);
   }
 
   if (res.status === 204) return undefined as T;
